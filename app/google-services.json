@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "507713072774",
+    "project_id": "remindme-1a400",
+    "storage_bucket": "remindme-1a400.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:507713072774:android:5aab35ccf20c21f1312b07",
+        "android_client_info": {
+          "package_name": "com.upriseus.remindme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "507713072774-322r8rkhioadb2pgbu9anlvr6oehug50.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsMu1IG15-xsOZ3NSkxwGI3WH0qE7S8lw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "507713072774-322r8rkhioadb2pgbu9anlvr6oehug50.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

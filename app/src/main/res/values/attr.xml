@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorTextItem" format="color" />
+    <attr name="colorTextItemSelected" format="color" />
+</resources>

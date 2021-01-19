@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:minHeight="100dp"
+    android:layout_marginBottom="30dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:background="@drawable/row_selected_bg"
+    >
+    <TextView
+        android:id="@+id/title_reminder"
+        android:textColor="@color/black"
+        android:layout_width="0dp"
+        android:layout_gravity="center"
+        android:gravity="start|center_vertical"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:layout_weight="2"
+        />
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.5"
+        >
+        <TextView
+            android:id="@+id/description_time"
+            android:textColor="@color/black"
+            android:layout_width="match_parent"
+            android:textStyle="bold"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:textSize="35sp"
+            android:layout_height="wrap_content"
+            />
+        <TextView
+            android:id="@+id/description_date"
+            android:textColor="@color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="15sp"
+            android:layout_alignParentBottom="true"
+            />
+    </RelativeLayout>
+
+
+
+</LinearLayout>

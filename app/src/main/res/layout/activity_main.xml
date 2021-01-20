@@ -4,4 +4,50 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"/>
+    android:background="@drawable/background"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:layout_width="210dp"
+        android:layout_height="234dp"
+        android:layout_marginTop="100dp"
+        android:scaleType="centerInside"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_hourglass"
+        android:id="@+id/app_logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textSize="25sp"
+        android:text="@string/sign_up"
+        app:strokeColor="@color/white"
+        app:strokeWidth="2dp"
+        app:layout_constraintTop_toBottomOf="@id/app_logo"
+        android:layout_marginTop="175dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        />
+
+    <Button
+        android:id="@+id/sign_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sign_in"
+        app:layout_constraintTop_toBottomOf="@id/sign_up"
+        android:textColor="@color/black"
+        android:textSize="25sp"
+        android:backgroundTint="@color/white"
+        android:layout_marginTop="15dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@style/Widget.MaterialComponents.Button"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

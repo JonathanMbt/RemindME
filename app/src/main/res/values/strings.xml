@@ -2,4 +2,14 @@
     <string name="app_name">RemindME</string>
     <string name="sign_up">Sign Up</string>
     <string name="sign_in">Sign In</string>
+    <string name="add_reminder">Add Reminder</string>
+    <string name="home">Home</string>
+    <string name="logout">Log Out</string>
+    <string name="account">Account</string>
+    <string name="save">Save</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="submit">Submit</string>
+    <string name="stay_connect">Keep me connected ?</string>
+    <string name="biometrics">Biometric log in</string>
 </resources>

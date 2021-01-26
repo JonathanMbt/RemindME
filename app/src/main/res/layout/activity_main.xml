@@ -5,18 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    >
 
     <ImageView
         android:layout_width="210dp"
         android:layout_height="234dp"
-        android:layout_marginTop="100dp"
+        app:layout_constraintVertical_bias="0.2"
         android:scaleType="centerInside"
         android:contentDescription="@string/app_name"
         android:src="@drawable/ic_hourglass"
         android:id="@+id/app_logo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -30,7 +32,8 @@
         android:layout_marginEnd="20dp"
         android:text="@string/sign_up"
         app:layout_constraintTop_toBottomOf="@id/app_logo"
-        android:layout_marginTop="175dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         style="@style/Widget.MaterialComponents.Button"
@@ -47,10 +50,10 @@
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:backgroundTint="@color/white"
-        android:layout_marginTop="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.08"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         style="@style/Widget.MaterialComponents.Button"
         />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

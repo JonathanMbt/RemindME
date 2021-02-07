@@ -116,6 +116,10 @@ class SignActivity : AppCompatActivity() {
                 }
                 val intent = Intent(applicationContext, HomeActivity::class.java)
                 startActivity(intent)
+            }else{
+                Toast.makeText(applicationContext, "Authentication failed",
+                        Toast.LENGTH_SHORT)
+                        .show()
             }
         }
     }

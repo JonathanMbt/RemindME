@@ -12,6 +12,7 @@ import android.widget.ListView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.upriseus.remindme.features.notifications.JobSchedulerNotif
 import com.upriseus.remindme.features.reminders.ReminderListener
 import com.upriseus.remindme.features.reminders.Reminders
 import com.upriseus.remindme.features.reminders.RemindersActions
@@ -22,7 +23,7 @@ import com.upriseus.remindme.layout_features.ReminderAdapter
 import java.util.*
 
 
-// INFO : REMINDER DIFFICULT INTERFACE
+
 class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
     private var reminders : MutableList<Reminders> = mutableListOf()
@@ -32,8 +33,9 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     /*
     * the var below permits to delete multiple reminders in one time
     * since firebase listener trigger at each value change, when you delete 2 items it will be triggered twice
-    * But the problem is that the first trigger, he will get the second element to be deleted (not yet deleted) but in the same moment
-    * this element have been removed from the list of reminders(and furthermore from the db), and could without this var be diplayed, even if it wasn't anymore in the database.
+    * But the problem is that: the first trigger, it will get the second element to be deleted (not yet deleted)So it will be displayed.
+    * But, this element already have been removed from the list of reminders(and furthermore from the db),
+    *  and could without be displayed, even if it wasn't anymore in the database.
     * */
     private var alreadyDisplayedReminders = mutableListOf<String>()
 
@@ -154,6 +156,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             )
             val key = reminderActions.addReminder(newReminder)
             newReminder.uuid = key
+            JobSchedulerNotif.registerJob(applicationContext, newReminder)
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
             Toast.makeText(applicationContext, "Failed to create reminder", Toast.LENGTH_LONG).show()

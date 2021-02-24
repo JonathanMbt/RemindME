@@ -31,6 +31,8 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     private lateinit var adapter : ReminderAdapter
     private lateinit var reminderActions : RemindersActions
     private lateinit var creator : String
+    private var selectedTab = 0
+
     /*
     * the var below permits to delete multiple reminders in one time
     * since firebase listener trigger at each value change, when you delete 2 items it will be triggered twice
@@ -105,7 +107,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
 
             override fun onDestroyActionMode(mode: ActionMode?) {
-                adapter.removeSelection()
+                adapter.removeSelection(selectedTab)
             }
 
             override fun onItemCheckedStateChanged(
@@ -133,9 +135,14 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     * More on this at: https://github.com/material-components/material-components-android/issues/1162
                     * */
                     when(tab.position){
-                        1 -> adapter.dispAllReminders()
-                        0 -> adapter.dispDueReminders()
+                        1 ->{
+                            selectedTab = 1
+                        }
+                        0 -> {
+                            selectedTab = 0
+                        }
                     }
+                    adapter.notifyDataChanged(selectedTab)
                 }
             }
 
@@ -212,7 +219,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                 reminders.remove(updatedReminder)
                 reminders.sortBy { it.reminderTime }
             }
-            adapter.notifyDataSetChanged()
+            adapter.notifyDataChanged(selectedTab)
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
             Toast.makeText(applicationContext, "Failed to create reminder", Toast.LENGTH_LONG).show()
@@ -231,7 +238,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             }
         }
         reminders.sortBy { it.reminderTime }
-        adapter.dispDueReminders() //as default selected tab is due reminders
+        adapter.notifyDataChanged(selectedTab)
     }
 
     override fun onError(error: Throwable?) {
@@ -241,7 +248,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     override fun onReminderDeleted(reminder: Reminders) {
         reminders.remove(reminder)
         reminders.sortBy { it.reminderTime }
-        adapter.notifyDataSetChanged()
+        adapter.notifyDataChanged(selectedTab)
     }
 
 }

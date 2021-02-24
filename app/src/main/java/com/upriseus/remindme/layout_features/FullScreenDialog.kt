@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private var selectedMonth = -1
     private var selectedYear = -1
     private var isUpdated = false
+    private val c = Calendar.getInstance()
 
     //allow static use
     companion object disp {
@@ -90,7 +92,6 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         }
 
         message = view.findViewById(R.id.message_text)
-        val c = Calendar.getInstance()
         if(updated_reminder != null){
             c.timeInMillis = updated_reminder.reminderTime
             selectedYear = c.get(Calendar.YEAR)
@@ -104,7 +105,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             selectedMonth = c.get(Calendar.MONTH)
             selectedDay = c.get(Calendar.DAY_OF_MONTH)
         }
-        dateContent.setText(getString(R.string.date_content, selectedDay.toString(), (selectedMonth + 1).toString(), selectedYear.toString())) //because I want january to be 1 not 0
+        dateContent.setText(DateFormat.format("dd/MM/yyyy", c).toString())
         return view
     }
 
@@ -143,10 +144,11 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
 
     private fun selectDate(){
         val listener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-            dateContent.setText(getString(R.string.date_content, dayOfMonth.toString(), (month + 1).toString(), year.toString())) //because I want january to be 1 not 0
             selectedYear = year
             selectedMonth = month
-            selectedDay = dayOfMonth;
+            selectedDay = dayOfMonth
+            c.set(selectedYear, selectedMonth, selectedDay)
+            dateContent.setText(DateFormat.format("dd/MM/yyyy", c).toString())
         }
         val datePickerDialog = DatePickerDialog(requireActivity(), listener, selectedYear, selectedMonth, selectedDay)
         datePickerDialog.show()

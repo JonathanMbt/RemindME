@@ -51,13 +51,13 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
         return convView;
     }
 
-    fun dispAllReminders(){
+    private fun dispAllReminders(){
         displayedReminders = mutableListOf()
         displayedReminders.addAll(reminders)
         notifyDataSetChanged()
     }
 
-    fun dispDueReminders(){
+    private fun dispDueReminders(){
         displayedReminders = mutableListOf()
         displayedReminders.addAll(reminders.filter {
             Calendar.getInstance().timeInMillis >= it.reminderTime
@@ -65,13 +65,20 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
         notifyDataSetChanged()
     }
 
+    fun notifyDataChanged(selectedTab: Int){
+        when(selectedTab){
+            0 -> dispDueReminders()
+            1 -> dispAllReminders()
+        }
+    }
+
     fun remove(reminder: Reminders){
         displayedReminders.remove(reminder)
     }
 
-    fun removeSelection(){
+    fun removeSelection(selectedTab: Int){
         selectedIds = SparseBooleanArray()
-        notifyDataSetChanged()
+        notifyDataChanged(selectedTab)
     }
 
     fun getSelectedIds() : SparseBooleanArray{

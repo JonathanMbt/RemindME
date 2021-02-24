@@ -9,7 +9,9 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.upriseus.remindme.MainActivity
 import com.upriseus.remindme.R
+import com.upriseus.remindme.SignActivity
 import com.upriseus.remindme.features.reminders.Reminders
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,16 +31,17 @@ class JobServiceNotif : JobService() {
         val job = Job()
         val context = this
         CoroutineScope(Dispatchers.Default + job).launch {
-            val notifyIntent = Intent(context, ReminderReceiver::class.java)
-            val pendingIntent = PendingIntent.getActivity(context, NOTIFICATION_ID, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val notifyIntent = Intent(context, MainActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(context, 0, notifyIntent, 0)
 
             val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID).apply {
-                setSmallIcon(R.drawable.ic_hourglass_color)
+                setSmallIcon(R.drawable.ic_hourglass)
                 setContentTitle(getString(R.string.app_name))
                 setContentText(reminder.message)
                 priority = NotificationCompat.PRIORITY_DEFAULT
                 setGroup(CHANNEL_ID)
                 setContentIntent(pendingIntent)
+                setAutoCancel(true) //delete notification when clicked (app launched)
             }
             createNotificationChannel()
             with(NotificationManagerCompat.from(context)) {

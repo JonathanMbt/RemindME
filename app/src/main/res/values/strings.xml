@@ -19,4 +19,6 @@
     <string name="delete">Delete</string>
     <string name="content_description_delete">Delete Selected Reminder</string>
     <string name="add_calendar">Add to calendar ?</string>
+    <string name="tab_reminders_due">Reminders Due</string>
+    <string name="tab_reminders_all">All Reminders</string>
 </resources>

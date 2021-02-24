@@ -12,6 +12,7 @@ import android.widget.ListView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.tabs.TabLayout
 import com.upriseus.remindme.features.notifications.JobSchedulerNotif
 import com.upriseus.remindme.features.reminders.ReminderListener
 import com.upriseus.remindme.features.reminders.Reminders
@@ -53,7 +54,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
         val lvreminders = findViewById<ListView>(R.id.list_reminders)
 
-        reminderActions = RemindersActions(applicationContext, this)
+        reminderActions = RemindersActions(this)
 
         adapter  = ReminderAdapter(reminders)
         lvreminders.adapter = adapter
@@ -122,6 +123,31 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
         lvreminders.setOnItemClickListener { _, _, position, _ ->
             FullScreenDialog.displayUpdate(supportFragmentManager, this, adapter.getItem(position))
         }
+
+        val tabLayout = findViewById<TabLayout>(R.id.toolbar_tab)
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                if(tab != null){
+                    /* use tab position as tab id doesn't work and always return -1
+                    * More on this at: https://github.com/material-components/material-components-android/issues/1162
+                    * */
+                    when(tab.position){
+                        1 -> adapter.dispAllReminders()
+                        0 -> adapter.dispDueReminders()
+                    }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                //TODO
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                // TODO
+            }
+
+        })
     }
 
     private fun openDialog() {
@@ -205,7 +231,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             }
         }
         reminders.sortBy { it.reminderTime }
-        adapter.notifyDataSetChanged()
+        adapter.dispDueReminders() //as default selected tab is due reminders
     }
 
     override fun onError(error: Throwable?) {

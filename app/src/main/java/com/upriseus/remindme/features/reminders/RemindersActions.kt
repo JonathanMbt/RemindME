@@ -8,7 +8,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 
-class RemindersActions(context: Context, val reminderListener: ReminderListener) : ViewModel() {
+class RemindersActions(val reminderListener: ReminderListener) : ViewModel() {
     private val DB_NAME = "reminders"
 
     private val remindersDb: FirebaseDatabase = Firebase.database("https://remindme-1a400-default-rtdb.firebaseio.com/")
@@ -28,7 +28,7 @@ class RemindersActions(context: Context, val reminderListener: ReminderListener)
         var reminder : Reminders
         reference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                r = mutableListOf<Reminders>()
+                r = mutableListOf()
                 for (postSnapshot in snapshot.children) {
                     reminder = Reminders.toObject(postSnapshot.value as HashMap<String, Any?>)
                     reminder.uuid = postSnapshot.key.toString()

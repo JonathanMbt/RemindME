@@ -1,6 +1,5 @@
 package com.upriseus.remindme.layout_features
 
-import android.graphics.Color
 import android.text.format.DateFormat
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
@@ -16,13 +15,14 @@ import java.util.*
 class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdapter() {
 
     private var selectedIds = SparseBooleanArray()
+    private var displayedReminders = mutableListOf<Reminders>()
 
     override fun getCount(): Int {
-        return reminders.size
+        return displayedReminders.size
     }
 
     override fun getItem(position: Int): Reminders {
-        return reminders[position]
+        return displayedReminders[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -51,8 +51,22 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
         return convView;
     }
 
+    fun dispAllReminders(){
+        displayedReminders = mutableListOf()
+        displayedReminders.addAll(reminders)
+        notifyDataSetChanged()
+    }
+
+    fun dispDueReminders(){
+        displayedReminders = mutableListOf()
+        displayedReminders.addAll(reminders.filter {
+            Calendar.getInstance().timeInMillis >= it.reminderTime
+        })
+        notifyDataSetChanged()
+    }
+
     fun remove(reminder: Reminders){
-        reminders.remove(reminder)
+        displayedReminders.remove(reminder)
     }
 
     fun removeSelection(){

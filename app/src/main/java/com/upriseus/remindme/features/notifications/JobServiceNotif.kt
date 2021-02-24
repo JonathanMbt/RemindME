@@ -31,6 +31,7 @@ class JobServiceNotif : JobService() {
         val job = Job()
         val context = this
         CoroutineScope(Dispatchers.Default + job).launch {
+            // TODO : add a receiver to make the reminders seen (because tap)
             val notifyIntent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(context, 0, notifyIntent, 0)
 

@@ -51,4 +51,9 @@
         <item name="android:textColor">@color/navy_blue</item>
     </style>
 
+    <style name="Widget.App.CheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/custom_round_checkbox</item>
+        <item name="android:paddingStart">-28dp</item>
+    </style>
+
 </resources>

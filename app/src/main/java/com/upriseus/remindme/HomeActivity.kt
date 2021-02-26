@@ -147,11 +147,11 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
-                //TODO
+                // INFO : Not Needed
             }
 
             override fun onTabReselected(tab: TabLayout.Tab?) {
-                // TODO
+                // INFO : Not Needed
             }
 
         })
@@ -189,7 +189,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             )
             val key = reminderActions.addReminder(newReminder)
             newReminder.uuid = key
-            JobSchedulerNotif.registerJob(applicationContext, newReminder)
+            JobSchedulerNotif.registerJob(applicationContext, newReminder, false)
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
             Toast.makeText(applicationContext, "Failed to create reminder", Toast.LENGTH_LONG).show()

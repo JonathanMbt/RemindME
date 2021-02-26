@@ -42,6 +42,86 @@
         android:timePickerMode="spinner"
         >
     </TimePicker>
+    <CheckBox
+        android:id="@+id/monday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tuesday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="-30dp"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/monday"/>
+    <CheckBox
+        android:id="@+id/tuesday"
+        app:layout_constraintStart_toEndOf="@id/monday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintEnd_toStartOf="@id/wednesday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/tuesday"/>
+    <CheckBox
+        android:id="@+id/wednesday"
+        app:layout_constraintStart_toEndOf="@id/tuesday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintEnd_toStartOf="@id/thursday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="-30dp"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/wednesday"/>
+    <CheckBox
+        android:id="@+id/thursday"
+        app:layout_constraintStart_toEndOf="@id/wednesday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintEnd_toStartOf="@id/friday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/thursday"/>
+    <CheckBox
+        android:id="@+id/friday"
+        app:layout_constraintStart_toEndOf="@id/thursday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintEnd_toStartOf="@id/saturday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/friday"/>
+    <CheckBox
+        android:id="@+id/saturday"
+        app:layout_constraintStart_toEndOf="@id/friday"
+        app:layout_constraintEnd_toStartOf="@id/sunday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/saturday"/>
+    <CheckBox
+        android:id="@+id/sunday"
+        app:layout_constraintStart_toEndOf="@id/saturday"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@style/Widget.App.CheckBox"
+        android:text="@string/sunday"/>
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/message"
         android:layout_width="match_parent"
@@ -49,7 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintTop_toBottomOf="@id/monday"
         app:layout_constraintVertical_bias="0.05"
         app:layout_constraintBottom_toBottomOf="parent"
         android:hint="@string/message"

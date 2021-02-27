@@ -23,6 +23,7 @@ class JobServiceNotif : JobService() {
         var NOTIFICATION_ID : Int = 0
         var MESSAGE : String = ""
         var RECURRING : Boolean = false
+        var DAYOFWEEK : Int = 10
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
@@ -33,6 +34,7 @@ class JobServiceNotif : JobService() {
             MESSAGE = params.extras.get("reminderMessage") as String
             NOTIFICATION_ID = params.extras.get("notificationID") as Int
             RECURRING = params.extras.get("recurring") as Boolean
+            DAYOFWEEK = params.extras.get("dayOfWeek") as Int
         }
 
         CoroutineScope(Dispatchers.Default + job).launch {
@@ -55,7 +57,7 @@ class JobServiceNotif : JobService() {
             }
         }
         if(RECURRING){
-            JobSchedulerNotif.weeklyJob(context, MESSAGE)
+            JobSchedulerNotif.weeklyJob(context, MESSAGE, DAYOFWEEK)
         }
         return true
     }

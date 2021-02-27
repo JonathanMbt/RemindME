@@ -1,16 +1,17 @@
 package com.upriseus.remindme
 
-import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.SparseBooleanArray
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.AbsListView.MultiChoiceModeListener
+import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Toast
-import androidx.lifecycle.Observer
+import androidx.core.util.remove
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.upriseus.remindme.features.notifications.JobSchedulerNotif
@@ -24,10 +25,10 @@ import com.upriseus.remindme.layout_features.ReminderAdapter
 import java.util.*
 
 
-
 class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
     private var reminders : MutableList<Reminders> = mutableListOf()
+    private var weeklyReminders : Int? = null //key 1 is sunday, key 2 is Monday...
     private lateinit var adapter : ReminderAdapter
     private lateinit var reminderActions : RemindersActions
     private lateinit var creator : String
@@ -46,12 +47,12 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
         super.onCreate(savedInstanceState)
 
         val username = applicationContext.getSharedPreferences(
-            "com.upriseus.remindme",
-            MODE_PRIVATE
+                "com.upriseus.remindme",
+                MODE_PRIVATE
         ).getString("pseudo", "")!!
         creator = applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).getString(
-            "account_id_$username",
-            ""
+                "account_id_$username",
+                ""
         )!!
 
         val lvreminders = findViewById<ListView>(R.id.list_reminders)
@@ -111,10 +112,10 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             }
 
             override fun onItemCheckedStateChanged(
-                mode: ActionMode?,
-                position: Int,
-                id: Long,
-                checked: Boolean
+                    mode: ActionMode?,
+                    position: Int,
+                    id: Long,
+                    checked: Boolean
             ) {
                 mode?.title = "${lvreminders.checkedItemCount} selected"
                 adapter.toggleSelection(position)
@@ -130,12 +131,12 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                if(tab != null){
+                if (tab != null) {
                     /* use tab position as tab id doesn't work and always return -1
                     * More on this at: https://github.com/material-components/material-components-android/issues/1162
                     * */
-                    when(tab.position){
-                        1 ->{
+                    when (tab.position) {
+                        1 -> {
                             selectedTab = 1
                         }
                         0 -> {
@@ -169,27 +170,90 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
         return R.id.home_item
     }
 
+    fun weekListener(view: View){
+        val chbx = view as CheckBox
+        when(chbx.id){
+            R.id.monday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    2
+                } else {
+                    null
+                }
+            }
+            R.id.tuesday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    3
+                } else {
+                    null
+                }
+            }
+            R.id.wednesday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    4
+                } else {
+                    null
+                }
+            }
+            R.id.thursday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    5
+                } else {
+                    null
+                }
+            }
+            R.id.friday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    6
+                } else {
+                    null
+                }
+            }
+            R.id.saturday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    7
+                } else {
+                    null
+                }
+            }
+            R.id.sunday -> {
+                weeklyReminders = if (chbx.isChecked) {
+                    1
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
     override fun userSelectedAValue(values: MutableMap<String, String>) {
         try {
             val cal = Calendar.getInstance()
             val remindTime = Calendar.getInstance()
+            val weekly = values["recurring"]?.toBoolean()
             remindTime.set(
-                Integer.parseInt(values["year"]!!),
-                (Integer.parseInt(values["month"]!!)),
-                Integer.parseInt(
-                    values["day"]!!
-                ),
-                Integer.parseInt(values["hours"]!!),
-                Integer.parseInt(values["minutes"]!!), 0)
+                    Integer.parseInt(values["year"]!!),
+                    (Integer.parseInt(values["month"]!!)),
+                    Integer.parseInt(
+                            values["day"]!!
+                    ),
+                    Integer.parseInt(values["hours"]!!),
+                    Integer.parseInt(values["minutes"]!!), 0)
             val newReminder = Reminders(
-                values["message"]!!,
-                reminderTime = remindTime.timeInMillis,
-                creationTime = cal.timeInMillis,
-                creatorId = creator
+                    values["message"]!!,
+                    reminderTime = remindTime.timeInMillis,
+                    creationTime = cal.timeInMillis,
+                    creatorId = creator
             )
+            if(weekly == true){
+                newReminder.recurring = true
+                newReminder.dayOfWeek = weeklyReminders
+                weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message, it) }
+            }else{
+                JobSchedulerNotif.registerJob(applicationContext, newReminder)
+            }
+            newReminder.jobId = JobSchedulerNotif.JOB_ID
             val key = reminderActions.addReminder(newReminder)
             newReminder.uuid = key
-            JobSchedulerNotif.registerJob(applicationContext, newReminder, false)
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
             Toast.makeText(applicationContext, "Failed to create reminder", Toast.LENGTH_LONG).show()
@@ -200,20 +264,31 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     override fun userUpdatedAValue(values: MutableMap<String, String>, updatedReminder: Reminders) {
         try {
             val cal = Calendar.getInstance()
+            val weekly = values["recurring"]?.toBoolean()
             cal.set(
-                Integer.parseInt(values["year"]!!),
-                Integer.parseInt(values["month"]!!),
-                Integer.parseInt(values["day"]!!),
-                Integer.parseInt(values["hours"]!!),
-                Integer.parseInt(values["minutes"]!!), 0)
+                    Integer.parseInt(values["year"]!!),
+                    Integer.parseInt(values["month"]!!),
+                    Integer.parseInt(values["day"]!!),
+                    Integer.parseInt(values["hours"]!!),
+                    Integer.parseInt(values["minutes"]!!), 0)
             val upReminder = reminders.find { it.uuid == updatedReminder.uuid }?.copy(
-                message = values["message"]!!,
-                reminderTime = cal.timeInMillis,
-                creationTime = updatedReminder.creationTime,
-                creatorId = creator
+                    message = values["message"]!!,
+                    reminderTime = cal.timeInMillis,
+                    creationTime = updatedReminder.creationTime,
+                    creatorId = creator,
+                    dayOfWeek = weeklyReminders,
+                    recurring = weekly
             )
             upReminder?.uuid = updatedReminder.uuid
+            upReminder?.recurring = updatedReminder.recurring
             if (upReminder != null) {
+                JobSchedulerNotif.unregisterJob(applicationContext, updatedReminder.jobId)
+                if(weekly == true){
+                    upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder.message, it) }
+                }else{
+                    JobSchedulerNotif.registerJob(applicationContext, upReminder)
+                }
+                upReminder.jobId = JobSchedulerNotif.JOB_ID
                 reminderActions.updateReminder(upReminder)
                 reminders.add(upReminder)
                 reminders.remove(updatedReminder)
@@ -247,6 +322,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
     override fun onReminderDeleted(reminder: Reminders) {
         reminders.remove(reminder)
+        JobSchedulerNotif.unregisterJob(applicationContext, reminder.jobId)
         reminders.sortBy { it.reminderTime }
         adapter.notifyDataChanged(selectedTab)
     }

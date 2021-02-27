@@ -6,17 +6,24 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.text.format.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.CompoundButton
+import android.widget.LinearLayout
 import android.widget.TimePicker
 import androidx.core.app.ActivityCompat
+import androidx.core.content.contentValuesOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.upriseus.remindme.R
@@ -32,6 +39,10 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private lateinit var listener : DialogListener
     private lateinit var timePicker  : TimePicker
     private lateinit var message  : TextInputEditText
+    private lateinit var recurringReminder : SwitchMaterial
+    private lateinit var weeklyReminder : LinearLayout
+    private lateinit var date : TextInputLayout
+    private var recurring = false
     private var selectedDay = -1
     private var selectedMonth = -1
     private var selectedYear = -1
@@ -63,7 +74,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NORMAL, R.style.RemindME_FullScreenDialog);
+        setStyle(STYLE_NORMAL, R.style.RemindME_FullScreenDialog)
     }
 
     override fun onStart() {
@@ -85,11 +96,14 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         timePicker = view.findViewById(R.id.time_picker)
         timePicker.setIs24HourView(true)
 
-        val date = view.findViewById<TextInputLayout>(R.id.date)
+        date = view.findViewById<TextInputLayout>(R.id.date)
         dateContent = view.findViewById(R.id.date_content)
         date.setEndIconOnClickListener {
             selectDate()
         }
+
+        recurringReminder = view.findViewById(R.id.recurring_reminders)
+        weeklyReminder = view.findViewById(R.id.weekly_reminders)
 
         message = view.findViewById(R.id.message_text)
         if(updated_reminder != null){
@@ -118,6 +132,22 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             toolbar.title = "New Reminder"
         }
         toolbar.inflateMenu(R.menu.save_dialog)
+
+        recurringReminder.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked){
+                timePicker.visibility = View.GONE
+                date.visibility = View.GONE
+                weeklyReminder.visibility = View.VISIBLE
+                recurring = true
+            }else{
+                timePicker.visibility = View.VISIBLE
+                date.visibility = View.VISIBLE
+                weeklyReminder.visibility = View.GONE
+                recurring = false
+            }
+        }
+
+
         toolbar.setOnMenuItemClickListener {
             when(it.itemId){
                 // TODO : Verification des champs vides et message d'erreur
@@ -129,6 +159,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
                     reminderData["day"] = selectedDay.toString()
                     reminderData["month"] = selectedMonth.toString()
                     reminderData["year"] = selectedYear.toString()
+                    reminderData["recurring"] = recurring.toString()
                     if (updated_reminder != null) {
                         listener.userUpdatedAValue(reminderData, updated_reminder)
                     } else {

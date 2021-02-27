@@ -28,4 +28,6 @@
     <string name="friday">F</string>
     <string name="sunday">S</string>
     <string name="saturday">S</string>
+    <string name="recurring_reminders">Set a recurring reminder ?</string>
+    <string name="recurring_date">Each %1$s</string>
 </resources>

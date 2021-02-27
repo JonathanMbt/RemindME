@@ -1,5 +1,6 @@
 package com.upriseus.remindme.layout_features
 
+import android.provider.Settings.Global.getString
 import android.text.format.DateFormat
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.widget.BaseAdapter
 import android.widget.TextView
 import com.upriseus.remindme.R
 import com.upriseus.remindme.features.reminders.Reminders
+import java.text.DateFormatSymbols
 import java.util.*
 
 
@@ -42,10 +44,15 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
             convView = convertView
             viewHolder = convView.tag as RowHolder
         }
-        cal.timeInMillis = getItem(position).reminderTime
-        viewHolder.title.text = getItem(position).message
-        viewHolder.time.text = DateFormat.format("HH:mm", cal).toString()
-        viewHolder.date.text = DateFormat.format("dd/MM/yyyy", cal).toString()
+        val reminder : Reminders= getItem(position)
+        cal.timeInMillis = reminder.reminderTime
+        viewHolder.title.text = reminder.message
+        if(reminder.recurring == true){
+            viewHolder.time.text = convView?.resources?.getString(R.string.recurring_date)?.let { String.format(it, DateFormatSymbols().weekdays[reminder.dayOfWeek!!]) }
+        }else{
+            viewHolder.time.text = DateFormat.format("HH:mm", cal).toString()
+            viewHolder.date.text = DateFormat.format("dd/MM/yyyy", cal).toString()
+        }
 
 
         return convView;

@@ -9,7 +9,7 @@ data class Reminders(val message : String,
                      val reminderTime : Long, // save as timestamp but in milli seconde
                      val creationTime : Long, // save as timestamp but in milli seconde
                      val creatorId : String?=null,
-                     val reminderSeen : Boolean?=false, var recurring : Boolean?=false, var dayOfWeek: Int?=null, var jobId :Int = 0)
+                     val reminderSeen : Boolean?=false, var recurring : Boolean?=false, var dayOfWeek: Int?=null, var jobId :Int = 0, var notif : Boolean = true)
 {
     var uuid: String = ""
     @Exclude
@@ -21,13 +21,18 @@ data class Reminders(val message : String,
             "creatorId" to creatorId,
             "message" to message,
             "reminderSeen" to reminderSeen, "recurring" to recurring,"dayOfWeek" to dayOfWeek,
-            "jobId" to jobId
+            "jobId" to jobId,
+            "notif" to notif
         )
     }
 
     companion object {
         fun toObject(map : Map<String, Any?>) : Reminders{
-            val r = Reminders(map["message"] as String, reminderTime = map["reminderTime"] as Long, creationTime = map["creationTime"] as Long, creatorId = map["creatorId"] as String, reminderSeen = map["reminderSeen"] as Boolean, recurring = map["recurring"] as Boolean, dayOfWeek = (map["dayOfWeek"] as Long?)?.toInt(), jobId = (map["jobId"] as Long).toInt())
+            val r = Reminders(map["message"] as String, reminderTime = map["reminderTime"] as Long,
+                    creationTime = map["creationTime"] as Long, creatorId = map["creatorId"] as String,
+                    reminderSeen = map["reminderSeen"] as Boolean, recurring = map["recurring"] as Boolean,
+                    dayOfWeek = (map["dayOfWeek"] as Long?)?.toInt(), jobId = (map["jobId"] as Long).toInt(),
+                    notif = map["notif"] as Boolean)
             r.uuid = map["uuid"].toString()
             return r
         }

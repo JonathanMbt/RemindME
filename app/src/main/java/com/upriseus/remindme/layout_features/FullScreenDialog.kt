@@ -42,6 +42,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private lateinit var recurringReminder : SwitchMaterial
     private lateinit var weeklyReminder : LinearLayout
     private lateinit var date : TextInputLayout
+    private lateinit var notifReminder : SwitchMaterial
     private var recurring = false
     private var selectedDay = -1
     private var selectedMonth = -1
@@ -105,6 +106,8 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         recurringReminder = view.findViewById(R.id.recurring_reminders)
         weeklyReminder = view.findViewById(R.id.weekly_reminders)
 
+        notifReminder = view.findViewById(R.id.notif_reminder)
+
         message = view.findViewById(R.id.message_text)
         if(updated_reminder != null){
             c.timeInMillis = updated_reminder.reminderTime
@@ -160,6 +163,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
                     reminderData["month"] = selectedMonth.toString()
                     reminderData["year"] = selectedYear.toString()
                     reminderData["recurring"] = recurring.toString()
+                    reminderData["notif"] = notifReminder.isChecked.toString()
                     if (updated_reminder != null) {
                         listener.userUpdatedAValue(reminderData, updated_reminder)
                     } else {

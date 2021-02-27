@@ -242,14 +242,17 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     values["message"]!!,
                     reminderTime = remindTime.timeInMillis,
                     creationTime = cal.timeInMillis,
-                    creatorId = creator
+                    creatorId = creator,
+                    notif = values["notif"]?.toBoolean()!!
             )
-            if(weekly == true){
-                newReminder.recurring = true
-                newReminder.dayOfWeek = weeklyReminders
-                weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message, it) }
-            }else{
-                JobSchedulerNotif.registerJob(applicationContext, newReminder)
+            if(newReminder.notif){
+                if(weekly == true){
+                    newReminder.recurring = true
+                    newReminder.dayOfWeek = weeklyReminders
+                    weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message, it) }
+                }else{
+                    JobSchedulerNotif.registerJob(applicationContext, newReminder)
+                }
             }
             newReminder.jobId = JobSchedulerNotif.JOB_ID
             val key = reminderActions.addReminder(newReminder)
@@ -277,16 +280,19 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     creationTime = updatedReminder.creationTime,
                     creatorId = creator,
                     dayOfWeek = weeklyReminders,
-                    recurring = weekly
+                    recurring = weekly,
+                    notif = values["notif"]?.toBoolean()!!
             )
             upReminder?.uuid = updatedReminder.uuid
             upReminder?.recurring = updatedReminder.recurring
             if (upReminder != null) {
                 JobSchedulerNotif.unregisterJob(applicationContext, updatedReminder.jobId)
-                if(weekly == true){
-                    upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder.message, it) }
-                }else{
-                    JobSchedulerNotif.registerJob(applicationContext, upReminder)
+                if(upReminder.notif){
+                    if(weekly == true){
+                        upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder.message, it) }
+                    }else{
+                        JobSchedulerNotif.registerJob(applicationContext, upReminder)
+                    }
                 }
                 upReminder.jobId = JobSchedulerNotif.JOB_ID
                 reminderActions.updateReminder(upReminder)

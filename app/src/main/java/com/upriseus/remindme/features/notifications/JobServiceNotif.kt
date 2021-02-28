@@ -1,5 +1,6 @@
 package com.upriseus.remindme.features.notifications
 
+import android.app.Notification.EXTRA_NOTIFICATION_ID
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -38,9 +39,14 @@ class JobServiceNotif : JobService() {
         }
 
         CoroutineScope(Dispatchers.Default + job).launch {
-            // TODO : add a receiver to make the reminders seen (because tap)
             val notifyIntent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(context, 0, notifyIntent, 0)
+
+            val snoozeIntent = Intent(context, SnoozeReceiver::class.java).apply {
+                putExtra(EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
+                putExtra("message", MESSAGE)
+            }
+            val snoozePendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, snoozeIntent, 0)
 
             val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID).apply {
                 setSmallIcon(R.drawable.ic_hourglass)
@@ -50,6 +56,7 @@ class JobServiceNotif : JobService() {
                 setGroup(CHANNEL_ID)
                 setContentIntent(pendingIntent)
                 setAutoCancel(true) //delete notification when clicked (app launched)
+                addAction(R.drawable.snooze, getString(R.string.snooze), snoozePendingIntent)
             }
             createNotificationChannel()
             with(NotificationManagerCompat.from(context)) {

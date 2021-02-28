@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.PersistableBundle
 import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import com.upriseus.remindme.features.reminders.Reminders
 import java.time.DayOfWeek
 import java.util.*
@@ -51,6 +52,26 @@ object JobSchedulerNotif {
         val componentName = ComponentName(context, JobServiceNotif::class.java)
         val jobInfo = JobInfo.Builder(JOB_ID, componentName).apply {
             setMinimumLatency(cal.timeInMillis - actualTime)
+            setPersisted(true)
+            setExtras(data)
+        }.build()
+
+        scheduler.schedule(jobInfo)
+    }
+
+    fun snoozeJob(context: Context, message: String, snoozeTime : Long){
+        JOB_ID = 23092000 + Random.nextInt(0, 1000)
+        val data = PersistableBundle(4)
+        data.putString("reminderMessage", message)
+        data.putInt("notificationID", JOB_ID)
+        data.putBoolean("recurring", false)
+        data.putInt("dayOfWeek", 10)
+
+        val cal = Calendar.getInstance()
+        val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        val componentName = ComponentName(context, JobServiceNotif::class.java)
+        val jobInfo = JobInfo.Builder(JOB_ID, componentName).apply {
+            setMinimumLatency(cal.timeInMillis + snoozeTime - cal.timeInMillis)
             setPersisted(true)
             setExtras(data)
         }.build()

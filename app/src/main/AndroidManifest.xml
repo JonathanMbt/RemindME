@@ -25,5 +25,6 @@
             android:name=".features.notifications.JobServiceNotif"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver android:name=".features.notifications.SnoozeReceiver"/>
     </application>
 </manifest>

@@ -35,8 +35,8 @@ object JobSchedulerNotif {
         scheduler.schedule(jobInfo)
     }
 
-    fun weeklyJob(context: Context, message: String, dayOfWeek: Int){
-        JOB_ID = 23092000 + Random.nextInt(0, 1000)
+    fun weeklyJob(context: Context, message: String, dayOfWeek: Int, jobId: Int? = null){
+        JOB_ID = jobId ?: 23092000 + Random.nextInt(0, 1000)
         val data = PersistableBundle(4)
         data.putString("reminderMessage", message)
         data.putInt("notificationID", JOB_ID)
@@ -59,8 +59,8 @@ object JobSchedulerNotif {
         scheduler.schedule(jobInfo)
     }
 
-    fun snoozeJob(context: Context, message: String, snoozeTime : Long){
-        JOB_ID = 23092000 + Random.nextInt(0, 1000)
+    fun snoozeJob(context: Context, message: String, snoozeTime : Long, jobId: Int){
+        JOB_ID = jobId
         val data = PersistableBundle(4)
         data.putString("reminderMessage", message)
         data.putInt("notificationID", JOB_ID)
@@ -82,5 +82,10 @@ object JobSchedulerNotif {
     fun unregisterJob(context: Context, jobId: Int) {
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         scheduler.cancel(jobId)
+    }
+
+    fun unregisterAllJob(context: Context){
+        val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        scheduler.cancelAll()
     }
 }

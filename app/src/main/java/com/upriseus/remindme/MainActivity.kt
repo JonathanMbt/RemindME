@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.upriseus.remindme.features.notifications.JobSchedulerNotif
+import com.upriseus.remindme.features.notifications.JobServiceNotif
 
 
 class MainActivity : AppCompatActivity() {

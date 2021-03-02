@@ -249,7 +249,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                 if(weekly == true){
                     newReminder.recurring = true
                     newReminder.dayOfWeek = weeklyReminders
-                    weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message, it) }
+                    weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message,it)  }
                 }else{
                     JobSchedulerNotif.registerJob(applicationContext, newReminder)
                 }

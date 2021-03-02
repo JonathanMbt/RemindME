@@ -1,4 +1,4 @@
-package com.upriseus.remindme.features.notifications
+ package com.upriseus.remindme.features.notifications
 
 import android.app.Notification.EXTRA_NOTIFICATION_ID
 import android.app.NotificationChannel
@@ -16,8 +16,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.*
 
-class JobServiceNotif : JobService() {
+ class JobServiceNotif : JobService() {
 
     companion object{
         private const val CHANNEL_ID = "RemindME_Notification_Channel"
@@ -46,7 +47,9 @@ class JobServiceNotif : JobService() {
                 putExtra(EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
                 putExtra("message", MESSAGE)
             }
-            val snoozePendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, snoozeIntent, 0)
+
+            // INFO : https://stackoverflow.com/a/24582168
+            val snoozePendingIntent: PendingIntent = PendingIntent.getBroadcast(context, Random().nextInt(), snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
             val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID).apply {
                 setSmallIcon(R.drawable.ic_hourglass)
@@ -64,7 +67,7 @@ class JobServiceNotif : JobService() {
             }
         }
         if(RECURRING){
-            JobSchedulerNotif.weeklyJob(context, MESSAGE, DAYOFWEEK)
+            JobSchedulerNotif.weeklyJob(context, MESSAGE, DAYOFWEEK, NOTIFICATION_ID) //as notificationId is the same as the jobId
         }
         return true
     }

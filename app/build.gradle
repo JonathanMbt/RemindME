@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -11,8 +12,8 @@ android {
         applicationId "com.upriseus.remindme"
         minSdkVersion 26
         targetSdkVersion 30
-        versionCode 3
-        versionName "0.3"
+        versionCode 4
+        versionName "0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,7 +33,6 @@ android {
     }
 }
 apply plugin: "kotlin-kapt"
-apply plugin: 'com.google.gms.google-services'
 
 dependencies {
     def room_version = "2.2.6"
@@ -55,6 +55,10 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
     implementation platform('com.google.firebase:firebase-bom:26.5.0')
     implementation "com.google.firebase:firebase-database-ktx"
+
 }
+

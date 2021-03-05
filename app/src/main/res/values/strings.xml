@@ -32,4 +32,5 @@
     <string name="recurring_date">Each %1$s</string>
     <string name="notif_reminder">Notification ?</string>
     <string name="snooze">Snooze</string>
+    <string name="api_key">%1$s</string>
 </resources>

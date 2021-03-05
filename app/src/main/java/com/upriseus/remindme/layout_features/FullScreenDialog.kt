@@ -1,39 +1,39 @@
 package com.upriseus.remindme.layout_features
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.ActionBar
 import android.app.DatePickerDialog
 import android.app.Dialog
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.opengl.Visibility
 import android.os.Bundle
-import android.provider.CalendarContract
 import android.text.format.DateFormat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.CompoundButton
 import android.widget.LinearLayout
 import android.widget.TimePicker
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.core.content.contentValuesOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.upriseus.remindme.R
+import com.upriseus.remindme.config
 import com.upriseus.remindme.features.reminders.Reminders
 import java.util.*
 
 
 // INFO : Based on this project : https://github.com/Schalex1998/Android-FullScreen-Dialog
 
-class FullScreenDialog(private val updated_reminder: Reminders? = null) : DialogFragment() {
+class FullScreenDialog(private val updated_reminder: Reminders? = null) : DialogFragment(), OnMapReadyCallback {
     private lateinit var toolbar : MaterialToolbar
     private lateinit var dateContent : TextInputEditText
     private lateinit var listener : DialogListener
@@ -43,12 +43,16 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private lateinit var weeklyReminder : LinearLayout
     private lateinit var date : TextInputLayout
     private lateinit var notifReminder : SwitchMaterial
+    private lateinit var mapView : MapView
+    private lateinit var map : GoogleMap
     private var recurring = false
     private var selectedDay = -1
     private var selectedMonth = -1
     private var selectedYear = -1
     private var isUpdated = false
     private val c = Calendar.getInstance()
+    private var isMapOpen = false
+    private var defaultLayoutParams : ConstraintLayout.LayoutParams? = null
 
     //allow static use
     companion object disp {
@@ -62,7 +66,11 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             return fullScreenDialog
         }
 
-        fun displayUpdate(fragmentManager: FragmentManager, listener: DialogListener? = null, updated_reminder: Reminders) : FullScreenDialog{
+        fun displayUpdate(
+            fragmentManager: FragmentManager,
+            listener: DialogListener? = null,
+            updated_reminder: Reminders
+        ) : FullScreenDialog{
             val fullScreenDialog = FullScreenDialog(updated_reminder)
             fullScreenDialog.isUpdated = true
             if(listener != null){
@@ -88,11 +96,25 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+
+        view?.resources?.let { String.format(it.getString(R.string.api_key), config.API_KEY) }
 
         val view: View = inflater.inflate(R.layout.full_screen_dialog, container, false)
         toolbar = view.findViewById(R.id.toolbar)
+
+        // INFO : challenge
+        mapView = view.findViewById<MapView>(R.id.map)
+        MapsInitializer.initialize(activity)
+        mapView.onCreate(savedInstanceState)
+        mapView.onResume()
+        mapView.getMapAsync(this)
+        defaultLayoutParams = mapView.layoutParams as ConstraintLayout.LayoutParams?
 
         timePicker = view.findViewById(R.id.time_picker)
         timePicker.setIs24HourView(true)
@@ -185,7 +207,59 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             c.set(selectedYear, selectedMonth, selectedDay)
             dateContent.setText(DateFormat.format("dd/MM/yyyy", c).toString())
         }
-        val datePickerDialog = DatePickerDialog(requireActivity(), listener, selectedYear, selectedMonth, selectedDay)
+        val datePickerDialog = DatePickerDialog(
+            requireActivity(),
+            listener,
+            selectedYear,
+            selectedMonth,
+            selectedDay
+        )
         datePickerDialog.show()
+    }
+
+    override fun onMapReady(p0: GoogleMap?) {
+        if (p0 != null) {
+            map = p0
+            // INFO : challenge
+            map.setOnMapClickListener {
+                if(!isMapOpen){
+                    val params = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+                    mapView.layoutParams = params
+                    isMapOpen = true
+                }else{
+                    mapView.layoutParams = defaultLayoutParams
+                    isMapOpen = false
+                }
+            }
+        }
+    }
+
+    private fun isPermissionGranted(): Boolean {
+
+        return ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (isPermissionGranted()) {
+            map.isMyLocationEnabled = true
+            map.uiSettings.isMyLocationButtonEnabled = true
+        } else {
+            ActivityCompat.requestPermissions(requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if(requestCode == 1) {
+            if(grantResults.contains(PackageManager.PERMISSION_GRANTED)) {
+                enableMyLocation()
+            }
+        }
     }
 }

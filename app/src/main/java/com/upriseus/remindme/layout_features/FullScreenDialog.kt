@@ -2,7 +2,6 @@ package com.upriseus.remindme.layout_features
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActionBar
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.pm.PackageManager
@@ -26,7 +25,6 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.upriseus.remindme.R
-import com.upriseus.remindme.config
 import com.upriseus.remindme.features.reminders.Reminders
 import java.util.*
 
@@ -102,8 +100,6 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-
-        view?.resources?.let { String.format(it.getString(R.string.api_key), config.API_KEY) }
 
         val view: View = inflater.inflate(R.layout.full_screen_dialog, container, false)
         toolbar = view.findViewById(R.id.toolbar)

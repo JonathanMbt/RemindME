@@ -4,12 +4,12 @@ import com.google.firebase.database.Exclude
 import java.time.DayOfWeek
 
 data class Reminders(val message : String,
-                     val locationx : Int?=null,
-                     val locationy: Int?=null,
+                     val locationx : Double?=null,
+                     val locationy: Double?=null,
                      val reminderTime : Long, // save as timestamp but in milli seconde
                      val creationTime : Long, // save as timestamp but in milli seconde
                      val creatorId : String?=null,
-                     val reminderSeen : Boolean?=false, var recurring : Boolean?=false, var dayOfWeek: Int?=null, var jobId :Int = 0, var notif : Boolean = true)
+                     val reminderSeen : Boolean?=false, var recurring : Boolean?=false, var dayOfWeek: Int?=null, var jobId :Int = 0, var notif : Boolean = true, var inGeofence : Boolean = false)
 {
     var uuid: String = ""
     @Exclude
@@ -22,7 +22,10 @@ data class Reminders(val message : String,
             "message" to message,
             "reminderSeen" to reminderSeen, "recurring" to recurring,"dayOfWeek" to dayOfWeek,
             "jobId" to jobId,
-            "notif" to notif
+            "notif" to notif,
+            "locationx" to locationx,
+            "locationy" to locationy,
+            "inGeofence" to inGeofence
         )
     }
 
@@ -32,7 +35,7 @@ data class Reminders(val message : String,
                     creationTime = map["creationTime"] as Long, creatorId = map["creatorId"] as String,
                     reminderSeen = map["reminderSeen"] as Boolean, recurring = map["recurring"] as Boolean,
                     dayOfWeek = (map["dayOfWeek"] as Long?)?.toInt(), jobId = (map["jobId"] as Long).toInt(),
-                    notif = map["notif"] as Boolean)
+                    notif = map["notif"] as Boolean, locationx = map["locationx"] as Double?, locationy = map["locationy"] as Double?, inGeofence = map["inGeofence"]as Boolean)
             r.uuid = map["uuid"].toString()
             return r
         }

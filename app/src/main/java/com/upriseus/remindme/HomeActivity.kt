@@ -1,8 +1,13 @@
 package com.upriseus.remindme
 
+import android.Manifest
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.SparseBooleanArray
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
@@ -11,9 +16,16 @@ import android.widget.AbsListView.MultiChoiceModeListener
 import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Toast
-import androidx.core.util.remove
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import com.upriseus.remindme.features.location.GeofenceReceiver
 import com.upriseus.remindme.features.notifications.JobSchedulerNotif
 import com.upriseus.remindme.features.reminders.ReminderListener
 import com.upriseus.remindme.features.reminders.Reminders
@@ -33,6 +45,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     private lateinit var reminderActions : RemindersActions
     private lateinit var creator : String
     private var selectedTab = 0
+    private lateinit var geofencingClient: GeofencingClient
 
     /*
     * the var below permits to delete multiple reminders in one time
@@ -156,6 +169,8 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             }
 
         })
+
+        geofencingClient = LocationServices.getGeofencingClient(applicationContext)
     }
 
     private fun openDialog() {
@@ -227,6 +242,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
     override fun userSelectedAValue(values: MutableMap<String, String>) {
         try {
+            lateinit var newReminder: Reminders
             val cal = Calendar.getInstance()
             val remindTime = Calendar.getInstance()
             val weekly = values["recurring"]?.toBoolean()
@@ -238,27 +254,43 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     ),
                     Integer.parseInt(values["hours"]!!),
                     Integer.parseInt(values["minutes"]!!), 0)
-            val newReminder = Reminders(
-                    values["message"]!!,
-                    reminderTime = remindTime.timeInMillis,
-                    creationTime = cal.timeInMillis,
-                    creatorId = creator,
-                    notif = values["notif"]?.toBoolean()!!
-            )
+            if(values["locationx"] != "null" && values["locationy"] != "null"){
+                newReminder = Reminders(
+                        values["message"]!!,
+                        reminderTime = remindTime.timeInMillis,
+                        creationTime = cal.timeInMillis,
+                        creatorId = creator,
+                        notif = values["notif"]?.toBoolean()!!,
+                        locationx = values["locationx"]?.toDouble(),
+                        locationy = values["locationy"]?.toDouble()
+                )
+            }else{
+                newReminder = Reminders(values["message"]!!,
+                        reminderTime = remindTime.timeInMillis,
+                        creationTime = cal.timeInMillis,
+                        creatorId = creator,
+                        notif = values["notif"]?.toBoolean()!!)
+            }
+            // Fix: id never put in database
+            newReminder.jobId = JobSchedulerNotif.JOB_ID
+            val key = reminderActions.addReminder(newReminder)
+            newReminder.uuid = key
             if(newReminder.notif){
                 if(weekly == true){
                     newReminder.recurring = true
                     newReminder.dayOfWeek = weeklyReminders
                     weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message,it)  }
                 }else{
-                    JobSchedulerNotif.registerJob(applicationContext, newReminder)
+                    if(newReminder.locationx != null && newReminder.locationy != null){
+                        createGeoFence(LatLng(newReminder.locationy!!, newReminder.locationx!!), newReminder.uuid, geofencingClient)
+                    }else{
+                        JobSchedulerNotif.registerJob(applicationContext, newReminder)
+                    }
                 }
             }
-            newReminder.jobId = JobSchedulerNotif.JOB_ID
-            val key = reminderActions.addReminder(newReminder)
-            newReminder.uuid = key
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
+            e.localizedMessage?.let { Log.e("HomeActivity : userSelectedAValue", it) }
             Toast.makeText(applicationContext, "Failed to create reminder", Toast.LENGTH_LONG).show()
         }
 
@@ -281,7 +313,9 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     creatorId = creator,
                     dayOfWeek = weeklyReminders,
                     recurring = weekly,
-                    notif = values["notif"]?.toBoolean()!!
+                    notif = values["notif"]?.toBoolean()!!,
+                    locationx = values["locationx"]?.toDouble(),
+                    locationy = values["locationy"]?.toDouble()
             )
             upReminder?.uuid = updatedReminder.uuid
             upReminder?.recurring = updatedReminder.recurring
@@ -291,7 +325,14 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     if(weekly == true){
                         upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder.message, it) }
                     }else{
-                        JobSchedulerNotif.registerJob(applicationContext, upReminder)
+                        if(updatedReminder.locationx != null && updatedReminder.locationy != null){
+                            removeGeofences(applicationContext, mutableListOf(updatedReminder.uuid))
+                        }
+                        if(upReminder.locationx != null && upReminder.locationy != null){
+                            createGeoFence(LatLng(upReminder.locationy, upReminder.locationx), upReminder.uuid, geofencingClient)
+                        }else{
+                            JobSchedulerNotif.registerJob(applicationContext, upReminder)
+                        }
                     }
                 }
                 upReminder.jobId = JobSchedulerNotif.JOB_ID
@@ -329,8 +370,60 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     override fun onReminderDeleted(reminder: Reminders) {
         reminders.remove(reminder)
         JobSchedulerNotif.unregisterJob(applicationContext, reminder.jobId)
+        removeGeofences(applicationContext, mutableListOf(reminder.uuid))
         reminders.sortBy { it.reminderTime }
         adapter.notifyDataChanged(selectedTab)
     }
 
+
+    private fun createGeoFence(location: LatLng, key: String, geofencingClient: GeofencingClient, reminderTime : Long? = null) {
+        val geofence = Geofence.Builder()
+                .setRequestId(key)
+                .setCircularRegion(location.latitude, location.longitude, 100.toFloat())
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+            .build()
+
+        val geofenceRequest = GeofencingRequest.Builder()
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            .addGeofence(geofence)
+            .build()
+
+        val intent = Intent(applicationContext, GeofenceReceiver::class.java)
+            .putExtra("key", key)
+            .putExtra("creator", creator)
+
+        val pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(
+                            applicationContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),23092000)
+            } else {
+                geofencingClient.addGeofences(geofenceRequest, pendingIntent)
+            }
+        } else {
+            geofencingClient.addGeofences(geofenceRequest, pendingIntent)
+        }
+
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 23092000) {
+            if (permissions.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(
+                        this,
+                        "This application needs background location to work on Android 10 and higher",
+                        Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun removeGeofences(context: Context, triggeringGeofenceListId: MutableList<String>) {
+        LocationServices.getGeofencingClient(context).removeGeofences(triggeringGeofenceListId)
+    }
 }

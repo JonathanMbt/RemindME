@@ -5,21 +5,23 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TimePicker
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.MapsInitializer
-import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.*
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
@@ -43,6 +45,9 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private lateinit var notifReminder : SwitchMaterial
     private lateinit var mapView : MapView
     private lateinit var map : GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var location : Marker? = null
+    private var circle : Circle? = null
     private var recurring = false
     private var selectedDay = -1
     private var selectedMonth = -1
@@ -111,6 +116,9 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         mapView.onResume()
         mapView.getMapAsync(this)
         defaultLayoutParams = mapView.layoutParams as ConstraintLayout.LayoutParams?
+
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         timePicker = view.findViewById(R.id.time_picker)
         timePicker.setIs24HourView(true)
@@ -182,6 +190,8 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
                     reminderData["year"] = selectedYear.toString()
                     reminderData["recurring"] = recurring.toString()
                     reminderData["notif"] = notifReminder.isChecked.toString()
+                    reminderData["locationx"] = location?.position?.longitude.toString()
+                    reminderData["locationy"] = location?.position?.latitude.toString()
                     if (updated_reminder != null) {
                         listener.userUpdatedAValue(reminderData, updated_reminder)
                     } else {
@@ -213,13 +223,39 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         datePickerDialog.show()
     }
 
+    @SuppressLint("MissingPermission")
     override fun onMapReady(p0: GoogleMap?) {
         if (p0 != null) {
             map = p0
+            enableMyLocation()
+            // INFO : https://stackoverflow.com/questions/36785542/how-to-change-the-position-of-my-location-button-in-google-maps-using-android-st
+            if (mapView.findViewById<View?>("1".toInt()) != null) {
+                val locationButton = (mapView.findViewById<View>("1".toInt()).parent as View).findViewById<View>("2".toInt())
+                val layoutParams = locationButton.layoutParams as RelativeLayout.LayoutParams
+                layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0)
+                layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
+                layoutParams.setMargins(0, 0, 30, 30)
+                locationButton.setOnClickListener {
+                    location?.remove()
+                }
+            }
+
+            fusedLocationClient.lastLocation.addOnSuccessListener {
+                if (it != null) {
+                    with(map) {
+                        val latLng = LatLng(it.latitude, it.longitude)
+                        moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13f))
+                    }
+                }
+            }
+
             // INFO : challenge
             map.setOnMapClickListener {
                 if(!isMapOpen){
-                    val params = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+                    val params = ConstraintLayout.LayoutParams(
+                        ConstraintLayout.LayoutParams.MATCH_PARENT,
+                        ConstraintLayout.LayoutParams.MATCH_PARENT
+                    )
                     mapView.layoutParams = params
                     isMapOpen = true
                 }else{
@@ -227,12 +263,34 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
                     isMapOpen = false
                 }
             }
+
+            map.setOnMapLongClickListener {
+                location?.remove()
+                circle?.remove()
+                location = map.addMarker(
+                    MarkerOptions().position(it)
+                        .title("Reminder location")
+                )
+                location?.showInfoWindow()
+                circle = map.addCircle(
+                    CircleOptions()
+                        .center(it)
+                        .strokeColor(Color.argb(50, 70, 70, 70))
+                        .fillColor(Color.argb(70, 150, 150, 150))
+                        .radius(100.toDouble())
+                )
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(it, 13f))
+            }
         }
     }
 
+
     private fun isPermissionGranted(): Boolean {
 
-        return ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        return ActivityCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
 
@@ -242,8 +300,10 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             map.isMyLocationEnabled = true
             map.uiSettings.isMyLocationButtonEnabled = true
         } else {
-            ActivityCompat.requestPermissions(requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
+            )
         }
     }
 

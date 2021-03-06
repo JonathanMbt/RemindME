@@ -5,6 +5,7 @@
     <!-- Job persist smartphone reboot-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -27,7 +28,12 @@
             android:name=".features.notifications.JobServiceNotif"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".features.location.GeofenceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <receiver android:name=".features.notifications.SnoozeReceiver"/>
+        <receiver android:name=".features.location.GeofenceReceiver"/>
         <meta-data android:name="com.google.android.geo.API_KEY"
                     android:value="AIzaSyDI10fU9sYfoUj14GBOzJjuCsIT9ftb0Ik" />
     </application>

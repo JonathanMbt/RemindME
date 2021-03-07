@@ -43,6 +43,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
     private lateinit var weeklyReminder : LinearLayout
     private lateinit var date : TextInputLayout
     private lateinit var notifReminder : SwitchMaterial
+    private lateinit var timebasedReminder : SwitchMaterial
     private lateinit var mapView : MapView
     private lateinit var map : GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -132,10 +133,12 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
         recurringReminder = view.findViewById(R.id.recurring_reminders)
         weeklyReminder = view.findViewById(R.id.weekly_reminders)
 
+        timebasedReminder = view.findViewById(R.id.time_based)
+
         notifReminder = view.findViewById(R.id.notif_reminder)
 
         message = view.findViewById(R.id.message_text)
-        if(updated_reminder != null){
+        if(updated_reminder?.reminderTime != null){
             c.timeInMillis = updated_reminder.reminderTime
             selectedYear = c.get(Calendar.YEAR)
             selectedMonth = c.get(Calendar.MONTH)
@@ -166,13 +169,25 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
             if(isChecked){
                 timePicker.visibility = View.GONE
                 date.visibility = View.GONE
+                mapView.visibility = View.GONE
                 weeklyReminder.visibility = View.VISIBLE
                 recurring = true
             }else{
                 timePicker.visibility = View.VISIBLE
                 date.visibility = View.VISIBLE
+                mapView.visibility = View.VISIBLE
                 weeklyReminder.visibility = View.GONE
                 recurring = false
+            }
+        }
+
+        timebasedReminder.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked){
+                timePicker.visibility = View.VISIBLE
+                date.visibility = View.VISIBLE
+            }else{
+                timePicker.visibility = View.GONE
+                date.visibility = View.GONE
             }
         }
 
@@ -192,6 +207,7 @@ class FullScreenDialog(private val updated_reminder: Reminders? = null) : Dialog
                     reminderData["notif"] = notifReminder.isChecked.toString()
                     reminderData["locationx"] = location?.position?.longitude.toString()
                     reminderData["locationy"] = location?.position?.latitude.toString()
+                    reminderData["timeBased"] = timebasedReminder.isChecked.toString()
                     if (updated_reminder != null) {
                         listener.userUpdatedAValue(reminderData, updated_reminder)
                     } else {

@@ -5,43 +5,52 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.PersistableBundle
-import android.util.Log
-import androidx.core.app.NotificationManagerCompat
+import androidx.appcompat.app.AppCompatActivity
 import com.upriseus.remindme.features.reminders.Reminders
-import java.time.DayOfWeek
 import java.util.*
 import kotlin.random.Random
 
 object JobSchedulerNotif {
     var JOB_ID : Int = 0
 
+    private fun getCreator(context: Context) : String{
+        val username = context.getSharedPreferences(
+                "com.upriseus.remindme",
+                AppCompatActivity.MODE_PRIVATE
+        ).getString("pseudo", "")!!
+        return context.getSharedPreferences("com.upriseus.remindme", AppCompatActivity.MODE_PRIVATE).getString(
+                "account_id_$username",
+                ""
+        )!!
+    }
+
     fun registerJob(context: Context, reminder: Reminders) {
         JOB_ID = 23092000 + Random.nextInt(0, 1000)
-        val data = PersistableBundle(4)
-        data.putString("reminderMessage", reminder.message)
+        val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
-        data.putBoolean("recurring", false)
-        data.putInt("dayOfWeek", 10) //unvalid value as reminder is not recurring
+        data.putString("key", reminder.uuid)
+        data.putString("creator", getCreator(context))
 
         val cal = Calendar.getInstance()
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val componentName = ComponentName(context, JobServiceNotif::class.java)
-        val jobInfo = JobInfo.Builder(JOB_ID, componentName).apply {
-            setMinimumLatency(reminder.reminderTime - cal.timeInMillis)
-            setPersisted(true)
-            setExtras(data)
-        }.build()
+        if(reminder.reminderTime != null){
+            val jobInfo = JobInfo.Builder(JOB_ID, componentName).apply {
+                setMinimumLatency(reminder.reminderTime - cal.timeInMillis)
+                setPersisted(true)
+                setExtras(data)
+            }.build()
 
-        scheduler.schedule(jobInfo)
+            scheduler.schedule(jobInfo)
+        }
     }
 
-    fun instantNotification(context: Context, message: String) {
+    fun instantJob(context: Context, reminder: Reminders) {
         JOB_ID = 23092000 + Random.nextInt(0, 1000)
-        val data = PersistableBundle(4)
-        data.putString("reminderMessage", message)
+        val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
-        data.putBoolean("recurring", false)
-        data.putInt("dayOfWeek", 10) //unvalid value as reminder is not recurring
+        data.putString("key", reminder.uuid)
+        data.putString("creator", getCreator(context))
 
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val componentName = ComponentName(context, JobServiceNotif::class.java)
@@ -54,13 +63,13 @@ object JobSchedulerNotif {
         scheduler.schedule(jobInfo)
     }
 
-    fun weeklyJob(context: Context, message: String, dayOfWeek: Int, jobId: Int? = null){
+
+    fun weeklyJob(context: Context, reminder: Reminders, dayOfWeek: Int, jobId: Int? = null){
         JOB_ID = jobId ?: 23092000 + Random.nextInt(0, 1000)
-        val data = PersistableBundle(4)
-        data.putString("reminderMessage", message)
+        val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
-        data.putBoolean("recurring", true)
-        data.putInt("dayOfWeek", dayOfWeek)
+        data.putString("key", "")
+        data.putString("creator", getCreator(context))
 
         val cal = Calendar.getInstance()
         val actualTime = cal.timeInMillis
@@ -78,13 +87,12 @@ object JobSchedulerNotif {
         scheduler.schedule(jobInfo)
     }
 
-    fun snoozeJob(context: Context, message: String, snoozeTime : Long, jobId: Int){
+    fun snoozeJob(context: Context, reminder: Reminders, snoozeTime : Long, jobId: Int){
         JOB_ID = jobId
-        val data = PersistableBundle(4)
-        data.putString("reminderMessage", message)
+        val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
-        data.putBoolean("recurring", false)
-        data.putInt("dayOfWeek", 10)
+        data.putString("key", reminder.uuid)
+        data.putString("creator", getCreator(context))
 
         val cal = Calendar.getInstance()
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler

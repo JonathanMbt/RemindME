@@ -1,6 +1,5 @@
 package com.upriseus.remindme.layout_features
 
-import android.provider.Settings.Global.getString
 import android.text.format.DateFormat
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
@@ -45,7 +44,9 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
             viewHolder = convView.tag as RowHolder
         }
         val reminder : Reminders= getItem(position)
-        cal.timeInMillis = reminder.reminderTime
+        if(reminder.reminderTime != null){
+            cal.timeInMillis = reminder.reminderTime
+        }
         viewHolder.title.text = reminder.message
         if(reminder.recurring == true){
             viewHolder.time.text = convView?.resources?.getString(R.string.recurring_date)?.let { String.format(it, DateFormatSymbols().weekdays[reminder.dayOfWeek!!]) }
@@ -67,6 +68,7 @@ class ReminderAdapter(private val reminders : MutableList<Reminders>) : BaseAdap
     private fun dispDueReminders(){
         displayedReminders = mutableListOf()
         displayedReminders.addAll(reminders.filter {
+            it.reminderTime != null &&
             Calendar.getInstance().timeInMillis >= it.reminderTime
         })
         notifyDataSetChanged()

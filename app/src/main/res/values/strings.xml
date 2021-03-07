@@ -33,4 +33,5 @@
     <string name="notif_reminder">Notification ?</string>
     <string name="snooze">Snooze</string>
     <string name="api_key">%1$s</string>
+    <string name="time_based">Time based ?</string>
 </resources>

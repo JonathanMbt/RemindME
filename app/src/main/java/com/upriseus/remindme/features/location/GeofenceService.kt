@@ -5,7 +5,6 @@ import android.app.job.JobService
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingEvent
 import com.upriseus.remindme.features.reminders.ReminderListener
 import com.upriseus.remindme.features.reminders.Reminders
 import com.upriseus.remindme.features.reminders.RemindersActions
@@ -17,11 +16,13 @@ import kotlinx.coroutines.launch
 class GeofenceService : JobService(), ReminderListener {
     private lateinit var key : String
     private lateinit var creator : String
+    private lateinit var context: Context
     private var geofencingEventTransition : Int = -1
     private var remindersActions = RemindersActions(this)
 
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("GeoferenceReceiver", "Received")
+        context = this
         if (params != null){
             key = params.extras.getString("key").toString()
             creator = params.extras.getString("creator").toString()
@@ -46,7 +47,6 @@ class GeofenceService : JobService(), ReminderListener {
                 val transition = geofencingEventTransition
                 if(transition == Geofence.GEOFENCE_TRANSITION_ENTER){
                     remind.inGeofence = true
-                    Log.i("GeofenceReceiver", "Enter")
                 }else if (transition == Geofence.GEOFENCE_TRANSITION_EXIT){
                     remind.inGeofence = false
                 }

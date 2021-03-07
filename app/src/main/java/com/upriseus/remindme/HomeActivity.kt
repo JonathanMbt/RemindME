@@ -255,39 +255,51 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     Integer.parseInt(values["hours"]!!),
                     Integer.parseInt(values["minutes"]!!), 0)
             if(values["locationx"] != "null" && values["locationy"] != "null"){
-                newReminder = Reminders(
-                        values["message"]!!,
-                        reminderTime = remindTime.timeInMillis,
-                        creationTime = cal.timeInMillis,
-                        creatorId = creator,
-                        notif = values["notif"]?.toBoolean()!!,
-                        locationx = values["locationx"]?.toDouble(),
-                        locationy = values["locationy"]?.toDouble()
-                )
-            }else{
+                if(values["timeBased"]?.toBoolean() == true){ //timeBased and locationBased
+                    newReminder = Reminders(
+                            values["message"]!!,
+                            reminderTime = remindTime.timeInMillis,
+                            creationTime = cal.timeInMillis,
+                            creatorId = creator,
+                            notif = values["notif"]?.toBoolean()!!,
+                            locationx = values["locationx"]?.toDouble(),
+                            locationy = values["locationy"]?.toDouble()
+                    )
+                }else{ //locationBased only
+                    newReminder = Reminders(
+                            values["message"]!!,
+                            reminderTime = null,
+                            creationTime = cal.timeInMillis,
+                            creatorId = creator,
+                            notif = values["notif"]?.toBoolean()!!,
+                            locationx = values["locationx"]?.toDouble(),
+                            locationy = values["locationy"]?.toDouble()
+                    )
+                }
+            }else{ //timeBased only
                 newReminder = Reminders(values["message"]!!,
                         reminderTime = remindTime.timeInMillis,
                         creationTime = cal.timeInMillis,
                         creatorId = creator,
                         notif = values["notif"]?.toBoolean()!!)
             }
-            // Fix: id never put in database
-            newReminder.jobId = JobSchedulerNotif.JOB_ID
             val key = reminderActions.addReminder(newReminder)
             newReminder.uuid = key
             if(newReminder.notif){
                 if(weekly == true){
                     newReminder.recurring = true
                     newReminder.dayOfWeek = weeklyReminders
-                    weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder.message,it)  }
+                    weeklyReminders?.let { JobSchedulerNotif.weeklyJob(applicationContext, newReminder,it)  }
                 }else{
                     if(newReminder.locationx != null && newReminder.locationy != null){
-                        createGeoFence(LatLng(newReminder.locationy!!, newReminder.locationx!!), newReminder.uuid, geofencingClient)
+                        createGeoFence(geofencingClient, newReminder)
                     }else{
                         JobSchedulerNotif.registerJob(applicationContext, newReminder)
                     }
                 }
             }
+            newReminder.jobId = JobSchedulerNotif.JOB_ID
+            reminderActions.updateReminder(newReminder)
         }catch (e: java.lang.Exception){
             Log.e("HomeActivity : userSelectedAValue", "Failed to create reminder")
             e.localizedMessage?.let { Log.e("HomeActivity : userSelectedAValue", it) }
@@ -306,30 +318,47 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                     Integer.parseInt(values["day"]!!),
                     Integer.parseInt(values["hours"]!!),
                     Integer.parseInt(values["minutes"]!!), 0)
-            val upReminder = reminders.find { it.uuid == updatedReminder.uuid }?.copy(
-                    message = values["message"]!!,
-                    reminderTime = cal.timeInMillis,
-                    creationTime = updatedReminder.creationTime,
-                    creatorId = creator,
-                    dayOfWeek = weeklyReminders,
-                    recurring = weekly,
-                    notif = values["notif"]?.toBoolean()!!,
-                    locationx = values["locationx"]?.toDouble(),
-                    locationy = values["locationy"]?.toDouble()
-            )
+            var upReminder = reminders.find { it.uuid == updatedReminder.uuid }
+            if(upReminder != null){
+                if(values["timeBased"]?.toBoolean() != false){
+                    upReminder = upReminder.copy(
+                            message = values["message"]!!,
+                            reminderTime = cal.timeInMillis,
+                            creationTime = updatedReminder.creationTime,
+                            creatorId = creator,
+                            dayOfWeek = weeklyReminders,
+                            recurring = weekly,
+                            notif = values["notif"]?.toBoolean()!!,
+                            locationx = values["locationx"]?.toDouble(),
+                            locationy = values["locationy"]?.toDouble()
+                    )
+                }else{
+                    upReminder = upReminder.copy(
+                            message = values["message"]!!,
+                            reminderTime = null,
+                            creationTime = updatedReminder.creationTime,
+                            creatorId = creator,
+                            dayOfWeek = weeklyReminders,
+                            recurring = weekly,
+                            notif = values["notif"]?.toBoolean()!!,
+                            locationx = values["locationx"]?.toDouble(),
+                            locationy = values["locationy"]?.toDouble()
+                    )
+                }
+            }
             upReminder?.uuid = updatedReminder.uuid
             upReminder?.recurring = updatedReminder.recurring
             if (upReminder != null) {
                 JobSchedulerNotif.unregisterJob(applicationContext, updatedReminder.jobId)
                 if(upReminder.notif){
                     if(weekly == true){
-                        upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder.message, it) }
+                        upReminder.dayOfWeek?.let { JobSchedulerNotif.weeklyJob(applicationContext, upReminder, it) }
                     }else{
                         if(updatedReminder.locationx != null && updatedReminder.locationy != null){
                             removeGeofences(applicationContext, mutableListOf(updatedReminder.uuid))
                         }
                         if(upReminder.locationx != null && upReminder.locationy != null){
-                            createGeoFence(LatLng(upReminder.locationy, upReminder.locationx), upReminder.uuid, geofencingClient)
+                            createGeoFence(geofencingClient, upReminder)
                         }else{
                             JobSchedulerNotif.registerJob(applicationContext, upReminder)
                         }
@@ -376,7 +405,9 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     }
 
 
-    private fun createGeoFence(location: LatLng, key: String, geofencingClient: GeofencingClient, reminderTime : Long? = null) {
+    private fun createGeoFence(geofencingClient: GeofencingClient, reminder: Reminders) {
+        val key = reminder.uuid
+        val location = LatLng(reminder.locationy!!, reminder.locationx!!)
         val geofence = Geofence.Builder()
                 .setRequestId(key)
                 .setCircularRegion(location.latitude, location.longitude, 100.toFloat())
@@ -388,6 +419,11 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
             .addGeofence(geofence)
             .build()
+
+        if(reminder.reminderTime != null){
+            JobSchedulerNotif.registerJob(applicationContext, reminder)
+        }
+
 
         val intent = Intent(applicationContext, GeofenceReceiver::class.java)
             .putExtra("key", key)

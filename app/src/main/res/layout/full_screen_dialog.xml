@@ -56,6 +56,19 @@
         app:layout_constraintVertical_bias="0.02"
         android:text="@string/notif_reminder"/>
     <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/time_based"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:textSize="20sp"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintStart_toEndOf="@id/notif_reminder"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/time_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.02"
+        android:text="@string/time_based"/>
+    <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/recurring_reminders"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

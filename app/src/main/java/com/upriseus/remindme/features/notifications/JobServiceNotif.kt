@@ -82,6 +82,7 @@ import kotlin.collections.HashMap
                  }
                  GEOFENCE = remind.locationx != null
                  REMINDER = remind
+                 JobSchedulerNotif.CREATOR = REMINDER.creatorId.toString()
                 notification()
              }
          }

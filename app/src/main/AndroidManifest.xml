@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.upriseus.remindme">
     <!-- Job persist smartphone reboot-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -22,7 +21,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".HomeActivity" android:windowSoftInputMode="stateAlwaysHidden|adjustResize"/>
-        <activity android:name=".AccountActivity" />
         <activity android:name=".SignActivity" android:windowSoftInputMode="adjustResize"/>
         <service
             android:name=".features.notifications.JobServiceNotif"

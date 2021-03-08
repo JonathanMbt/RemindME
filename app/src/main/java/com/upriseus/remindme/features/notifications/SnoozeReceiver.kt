@@ -21,7 +21,7 @@ class SnoozeReceiver : BroadcastReceiver(){
 
         val notificationManager : NotificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(id)
-
+        JobSchedulerNotif.CREATOR = reminders.creatorId.toString()
         JobSchedulerNotif.snoozeJob(context, reminders, 1000 * 60 * 5, id) //5min
     }
 

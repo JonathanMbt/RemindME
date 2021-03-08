@@ -7,7 +7,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
-import com.upriseus.remindme.AccountActivity
 import com.upriseus.remindme.HomeActivity
 import com.upriseus.remindme.MainActivity
 import com.upriseus.remindme.R
@@ -51,11 +50,6 @@ abstract class MaterialNavActivity: AppCompatActivity() {
                 R.id.logout_item -> {
                     applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putInt("loginStatus", 0).apply()
                     val intent = Intent(applicationContext, MainActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.account_item -> {
-                    val intent = Intent(applicationContext, AccountActivity::class.java)
                     startActivity(intent)
                     true
                 }

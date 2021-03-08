@@ -1,9 +1,7 @@
 package com.upriseus.remindme
 
-import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -17,14 +15,19 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.upriseus.remindme.features.Hash
+import com.upriseus.remindme.features.account.User
+import com.upriseus.remindme.features.account.UserActions
+import com.upriseus.remindme.features.account.UserListener
 import java.util.concurrent.Executor
-import kotlin.random.Random
 
-class SignActivity : AppCompatActivity() {
+class SignActivity : AppCompatActivity(), UserListener {
 
     private lateinit var executor: Executor
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
+    private val userActions : UserActions = UserActions(this)
+    private lateinit var password : TextInputEditText
+    private lateinit var stayconnect : SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,8 +36,8 @@ class SignActivity : AppCompatActivity() {
         executor = ContextCompat.getMainExecutor(this)
         val type = intent.getStringExtra("type").toString()
         val username = findViewById<TextInputEditText>(R.id.username_text)
-        val password = findViewById<TextInputEditText>(R.id.username_password)
-        val stayconnect = findViewById<SwitchMaterial>(R.id.stay_connect)
+        password = findViewById(R.id.username_password)
+        stayconnect = findViewById(R.id.stay_connect)
         val title = findViewById<TextView>(R.id.main)
         val buttonConnect = findViewById<Button>(R.id.connect)
         val biometricButton = findViewById<Button>(R.id.connect_biometrics)
@@ -98,7 +101,7 @@ class SignActivity : AppCompatActivity() {
 
         buttonConnect.setOnClickListener {
             if(type == "signin"){
-                checkAuthentification(username.text.toString(), password.text.toString(), stayconnect.isChecked)
+                userActions.getUser(username.text.toString())
             }else{
                 createAccount(username.text.toString(), password.text.toString())
             }
@@ -106,33 +109,43 @@ class SignActivity : AppCompatActivity() {
 
     }
 
-    private fun checkAuthentification(username: String, password: String, stay : Boolean){
-        val storedHashedPassword = applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).getString(username, "")
-        if (storedHashedPassword != null && storedHashedPassword != "")  {
-            if(Hash.validatePassword(password, storedHashedPassword)){
-                applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putString("pseudo", username).apply()
+    private fun checkAuthentification(user: User, passwordtry: String, stay : Boolean){
+        if (user.password != "")  {
+            if(Hash.validatePassword(passwordtry, user.password)){
                 if (stay){
                     applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putInt("loginStatus", 1).apply()
+                    applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putString("username", user.username).apply()
                 }else{
                     applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putInt("loginStatus", 0).apply()
                 }
                 val intent = Intent(applicationContext, HomeActivity::class.java)
+                        .putExtra("user", user.toMap() as HashMap)
                 startActivity(intent)
             }else{
                 Toast.makeText(applicationContext, "Authentication failed",
                         Toast.LENGTH_SHORT)
                         .show()
             }
+        }else{
+            Toast.makeText(applicationContext, "Authentication failed",
+                Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
     private fun createAccount(username: String, password: String){
         val hashedPassword = Hash.hash(password)
-        applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putString(username, hashedPassword).apply()
-        applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putString("pseudo", username).apply()
-        applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).edit().putString("account_id_$username", username+ Random.nextInt().toString()).apply()
+        val user = User(username, hashedPassword)
+        val key = userActions.addUser(user)
+        user.uuid = key
+        userActions.updateUser(user)
         val intent = Intent(applicationContext, HomeActivity::class.java)
+                .putExtra("user", user.toMap() as HashMap)
         startActivity(intent)
+    }
+
+    override fun onUserReceived(user: User) {
+        checkAuthentification(user, password.text.toString(), stayconnect.isChecked)
     }
 
 }

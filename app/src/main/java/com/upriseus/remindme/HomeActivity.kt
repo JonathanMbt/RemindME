@@ -25,6 +25,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import com.upriseus.remindme.features.account.User
 import com.upriseus.remindme.features.location.GeofenceReceiver
 import com.upriseus.remindme.features.notifications.JobSchedulerNotif
 import com.upriseus.remindme.features.reminders.ReminderListener
@@ -59,15 +60,10 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val username = applicationContext.getSharedPreferences(
-                "com.upriseus.remindme",
-                MODE_PRIVATE
-        ).getString("pseudo", "")!!
-        creator = applicationContext.getSharedPreferences("com.upriseus.remindme", MODE_PRIVATE).getString(
-                "account_id_$username",
-                ""
-        )!!
+        val user = User.toObject(intent.extras?.getSerializable("user") as Map<String, Any?>)
 
+        creator = user.uuid
+        JobSchedulerNotif.CREATOR = creator
         val lvreminders = findViewById<ListView>(R.id.list_reminders)
 
         reminderActions = RemindersActions(this)
@@ -386,10 +382,27 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
             if(remind.uuid !in alreadyDisplayedReminders){
                 reminders.add(remind)
                 alreadyDisplayedReminders.add(remind.uuid)
+                if(JobSchedulerNotif.getJob(applicationContext, remind.jobId) == null){
+                    initializeReminders(remind)
+                }
             }
         }
         reminders.sortBy { it.reminderTime }
         adapter.notifyDataChanged(selectedTab)
+    }
+
+    private fun initializeReminders(reminder: Reminders) {
+        if(reminder.locationx == null){ //time based reminders
+            if(reminder.recurring == true){ //weekly reminders
+                reminder.dayOfWeek?.let {
+                    JobSchedulerNotif.weeklyJob(applicationContext, reminder, it)
+                }
+            }else{ //unique Reminder
+                JobSchedulerNotif.registerJob(applicationContext, reminder)
+            }
+        }else{ // location based reminders
+            createGeoFence(geofencingClient, reminder)
+        }
     }
 
     override fun onError(error: Throwable?) {

@@ -5,31 +5,20 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.PersistableBundle
-import androidx.appcompat.app.AppCompatActivity
 import com.upriseus.remindme.features.reminders.Reminders
 import java.util.*
 import kotlin.random.Random
 
 object JobSchedulerNotif {
     var JOB_ID : Int = 0
-
-    private fun getCreator(context: Context) : String{
-        val username = context.getSharedPreferences(
-                "com.upriseus.remindme",
-                AppCompatActivity.MODE_PRIVATE
-        ).getString("pseudo", "")!!
-        return context.getSharedPreferences("com.upriseus.remindme", AppCompatActivity.MODE_PRIVATE).getString(
-                "account_id_$username",
-                ""
-        )!!
-    }
+    var CREATOR : String = ""
 
     fun registerJob(context: Context, reminder: Reminders) {
         JOB_ID = 23092000 + Random.nextInt(0, 1000)
         val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
         data.putString("key", reminder.uuid)
-        data.putString("creator", getCreator(context))
+        data.putString("creator", CREATOR)
 
         val cal = Calendar.getInstance()
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
@@ -50,7 +39,7 @@ object JobSchedulerNotif {
         val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
         data.putString("key", reminder.uuid)
-        data.putString("creator", getCreator(context))
+        data.putString("creator", CREATOR)
 
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val componentName = ComponentName(context, JobServiceNotif::class.java)
@@ -69,7 +58,7 @@ object JobSchedulerNotif {
         val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
         data.putString("key", "")
-        data.putString("creator", getCreator(context))
+        data.putString("creator", CREATOR)
 
         val cal = Calendar.getInstance()
         val actualTime = cal.timeInMillis
@@ -92,7 +81,7 @@ object JobSchedulerNotif {
         val data = PersistableBundle(2)
         data.putInt("notificationID", JOB_ID)
         data.putString("key", reminder.uuid)
-        data.putString("creator", getCreator(context))
+        data.putString("creator", CREATOR)
 
         val cal = Calendar.getInstance()
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
@@ -114,5 +103,10 @@ object JobSchedulerNotif {
     fun unregisterAllJob(context: Context){
         val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         scheduler.cancelAll()
+    }
+
+    fun getJob(context: Context, jobId: Int): JobInfo?{
+        val scheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        return scheduler.getPendingJob(jobId)
     }
 }

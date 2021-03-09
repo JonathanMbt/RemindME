@@ -449,7 +449,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
                             applicationContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this,
-                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),23092000)
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),5)
             } else {
                 geofencingClient.addGeofences(geofenceRequest, pendingIntent)
             }
@@ -461,7 +461,7 @@ class HomeActivity : MaterialNavActivity(), DialogListener, ReminderListener {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 23092000) {
+        if (requestCode == 5) {
             if (permissions.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(
                         this,

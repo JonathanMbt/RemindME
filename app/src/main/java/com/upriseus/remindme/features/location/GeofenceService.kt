@@ -5,6 +5,7 @@ import android.app.job.JobService
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.location.Geofence
+import com.upriseus.remindme.features.notifications.JobSchedulerNotif
 import com.upriseus.remindme.features.reminders.ReminderListener
 import com.upriseus.remindme.features.reminders.Reminders
 import com.upriseus.remindme.features.reminders.RemindersActions
@@ -47,6 +48,9 @@ class GeofenceService : JobService(), ReminderListener {
                 val transition = geofencingEventTransition
                 if(transition == Geofence.GEOFENCE_TRANSITION_ENTER){
                     remind.inGeofence = true
+                    if (remind.reminderTime == null){
+                        JobSchedulerNotif.instantJob(context, remind)
+                    }
                 }else if (transition == Geofence.GEOFENCE_TRANSITION_EXIT){
                     remind.inGeofence = false
                 }
